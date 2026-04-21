@@ -1,76 +1,75 @@
-import { motion, Variants } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { personal } from '../../data';
 import './About.css';
 
-const containerVariants: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.1 } },
-};
-
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.8 } },
-};
+const codeLines = [
+  { html: '<span class="ck">const</span> <span class="cf">developer</span> = {' },
+  { html: '  <span class="cp">name</span>: <span class="cs">\'Mostafa Atef\'</span>,' },
+  { html: '  <span class="cp">role</span>: <span class="cs">\'Frontend Developer\'</span>,' },
+  { html: '  <span class="cp">location</span>: <span class="cs">\'Cairo 🇪🇬\'</span>,' },
+  { html: '  <span class="cp">stack</span>: [' },
+  { html: '    <span class="cs">\'React\'</span>, <span class="cs">\'Next.js\'</span>,' },
+  { html: '    <span class="cs">\'TypeScript\'</span>, <span class="cs">\'Redux\'</span>,' },
+  { html: '    <span class="cs">\'Tailwind\'</span>, <span class="cs">\'Firebase\'</span>' },
+  { html: '  ],' },
+  { html: '  <span class="cp">available</span>: <span class="co">true</span>,' },
+  { html: '}<span class="ck"> as const</span>;' },
+];
 
 export default function About() {
+  const [visibleLines, setVisibleLines] = useState(0);
+  const codeRef = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !started.current) {
+        started.current = true;
+        let idx = 0;
+        const iv = setInterval(() => {
+          idx++;
+          setVisibleLines(idx);
+          if (idx >= codeLines.length) clearInterval(iv);
+        }, 160);
+      }
+    }, { threshold: 0.4 });
+    if (codeRef.current) obs.observe(codeRef.current);
+    return () => obs.disconnect();
+  }, []);
+
   return (
     <section id="about" className="about">
       <div className="about-inner">
-        <motion.div
-          className="about-left"
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={containerVariants}
-        >
-          <motion.div className="section-label" variants={fadeUp}>About</motion.div>
-          <motion.h2 className="about-heading" variants={fadeUp}>
-            Code is craft,<br /><em>not just output.</em>
-          </motion.h2>
-          {personal.bio.map((p, i) => (
-            <motion.p key={i} className="about-p" variants={fadeUp}>{p}</motion.p>
-          ))}
-          <motion.div className="about-tags" variants={fadeUp}>
+        <div className="reveal-left">
+          <div className="section-label">About</div>
+          <h2 className="about-heading">Code is craft,<br /><em>not just output.</em></h2>
+          {personal.bio.map((p, i) => <p key={i} className="about-p">{p}</p>)}
+          <div className="about-tags">
             {['Open to remote', 'Full-time / freelance', 'Cairo, Egypt'].map(t => (
               <span key={t} className="about-tag">{t}</span>
             ))}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
-        <motion.div
-          className="about-right"
-          initial={{ opacity: 0, x: 40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 1 }}
-        >
+        <div className="reveal-right" ref={codeRef}>
           <div className="code-window">
             <div className="code-titlebar">
-              <div className="code-dots">
-                <span className="dot dot-r" /><span className="dot dot-y" /><span className="dot dot-g" />
-              </div>
+              <div className="code-dots"><span className="dot dot-r" /><span className="dot dot-y" /><span className="dot dot-g" /></div>
               <span className="code-filename">developer.ts</span>
             </div>
             <pre className="code-body">
-              <span className="ck">const</span> <span className="cf">developer</span> = {'{'}{'\n'}
-              {'  '}<span className="cp">name</span>: <span className="cs">'Mostafa Atef'</span>,{'\n'}
-              {'  '}<span className="cp">role</span>: <span className="cs">'Frontend Developer'</span>,{'\n'}
-              {'  '}<span className="cp">location</span>: <span className="cs">'Cairo 🇪🇬'</span>,{'\n'}
-              {'  '}<span className="cp">stack</span>: [{'\n'}
-              {'    '}<span className="cs">'React'</span>, <span className="cs">'Next.js'</span>,{'\n'}
-              {'    '}<span className="cs">'TypeScript'</span>, <span className="cs">'Redux'</span>,{'\n'}
-              {'    '}<span className="cs">'Tailwind'</span>, <span className="cs">'Firebase'</span>{'\n'}
-              {'  '}],{'\n'}
-              {'  '}<span className="cp">available</span>: <span className="co">true</span>,{'\n'}
-              {'  '}<span className="cm">let's build something great</span>{'\n'}
-              {'}'}<span className="ck"> as const</span>;
+              {codeLines.slice(0, visibleLines).map((l, i) => (
+                <span key={i} dangerouslySetInnerHTML={{ __html: l.html + '\n' }} />
+              ))}
+              {visibleLines < codeLines.length && <span className="code-cursor">&nbsp;</span>}
             </pre>
           </div>
           <div className="about-quote">
             <span className="quote-mark">"</span>
             The best code is the code your team can read at 2am during an outage.
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
