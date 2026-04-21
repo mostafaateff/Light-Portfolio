@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 import { personal } from '../../data';
 import './About.css';
 
